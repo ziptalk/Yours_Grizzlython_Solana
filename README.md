@@ -1,1 +1,1 @@
-# Yourlabs_Grizzlython_Solana
+# Yours_Grizzlython_Solana
