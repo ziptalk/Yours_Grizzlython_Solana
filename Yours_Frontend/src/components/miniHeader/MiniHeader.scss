@@ -1,0 +1,19 @@
+@import '../../style/var.scss';
+
+.mini-header-container {
+    width: -webkit-fill-available;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    @include set-vw(height, 64px);
+    @include set-vw(margin-bottom, 12px);
+    @include H2(eng);
+
+    .mini-header-goback {
+        width: auto;
+        position: absolute;
+        left: 0;
+        @include set-vw(height, 20px);
+    }
+}
