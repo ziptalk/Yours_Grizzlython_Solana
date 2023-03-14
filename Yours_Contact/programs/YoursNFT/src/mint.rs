@@ -20,14 +20,14 @@ pub fn mint(
     mint_token_to_account(&ctx)?;
     create_metadata_account(&ctx, metadata_title, metadata_symbol, metadata_uri)?;
     //create_master_edition_metadata_account(&ctx)?;
-    //create_benefit_info(&mut ctx, benefit_uri)?;
-    //create_benefits(&mut ctx, benefits)?;
+    create_benefit_info(&mut ctx.accounts.benefit_info, benefit_uri)?;
+    create_benefits(&mut ctx.accounts.benefits_list, benefits)?;
     msg!("Token mint process completed successfully.");
     Ok(())
 }
 
 #[derive(Accounts)]
-#[instruction(benefit_uri: String)]
+#[instruction(benefit_uri: String, benefits: Vec<u64>)]
 pub struct MintNFT<'info> {
     /// CHECK: We are about to create this with Metaplex
     #[account(mut)]
@@ -52,12 +52,12 @@ pub struct MintNFT<'info> {
     pub benefit_info: Account<'info, BenefitURIAccount>,
     #[account(
         init,
-        seeds = [b"benefit", mint.key().as_ref(), mint_authority.key().as_ref()],
+        seeds = [b"benefit", mint.key().as_ref(), token_account.key().as_ref()],
         bump,
         payer = mint_authority,
-        space = benefit_uri.len() + 4 + 8
+        space = benefits.len() * 8 + 4 + 8
     )]
-    pub benefits: Account<'info, Benefits>,
+    pub benefits_list: Account<'info, Benefits>,
     //------program served------
     pub rent: Sysvar<'info, Rent>,
     pub system_program: Program<'info, System>,
@@ -213,17 +213,17 @@ fn create_master_edition_metadata_account(ctx: &Context<MintNFT>) -> ProgramResu
     )
 }
 
-fn create_benefit_info(ctx: Context<MintNFT>, benefitURI: String ) -> ProgramResult {
+fn create_benefit_info<'info>(account: &mut Account<'info, BenefitURIAccount>, benefitURI: String ) -> ProgramResult {
     msg!("Creating benefit info...");
-    msg!("Mint: {}", &ctx.accounts.benefit_info.key());
-    let benefit_account =  &mut ctx.accounts.benefit_info;
+    //msg!("Mint: {}", &ctx.accounts.benefit_info.key());
+    let benefit_account =  account;
     benefit_account.benefit_uri = benefitURI;
     Ok(())
 }
 
-fn create_benefits(ctx: Context<MintNFT>, benefits: Vec<u64>) -> ProgramResult {
+fn create_benefits<'info>(account: &mut Account<'info, Benefits>, benefits: Vec<u64>) -> ProgramResult {
     msg!("Setting benefit list...");
-    let benefits_account = &mut ctx.accounts.benefits;
+    let benefits_account = account;
     benefits_account.benefits = benefits;
     Ok(())
 }

@@ -18,11 +18,13 @@ export class NFTOwner {
         const tokenAddress: anchor.web3.PublicKey = await this.createTokenAddress(mintKeypair.publicKey, this.wallet.publicKey);
         const metadataAddress: anchor.web3.PublicKey = await this.createMetadataAddress(mintKeypair);
         const masterEditionAddress: anchor.web3.PublicKey = await this.createMasterEditionAddress(mintKeypair);
-        const benefitAddress: anchor.web3.PublicKey = await this.createBenefitAddress(mintKeypair);
-        console.log("benefit address:  ", benefitAddress);
-        await this.callMint(masterEditionAddress, metadataAddress, mintKeypair, tokenAddress, benefitAddress, nftData);
-        console.log(benefitAddress)
-        const account = await this.program.account.benefitUriAccount.fetch(benefitAddress)
+        const benefitURIAddress: anchor.web3.PublicKey = await this.createBenefitURIAddress(mintKeypair);
+        const benefitsAddress: anchor.web3.PublicKey = await this.createBenefitsAddress(mintKeypair.publicKey, tokenAddress)
+        console.log("benefit address:  ", benefitURIAddress);
+        console.log("benefit list address:  ", benefitsAddress);
+        await this.callMint(masterEditionAddress, metadataAddress, mintKeypair, tokenAddress, benefitURIAddress, benefitsAddress, nftData);
+        console.log(benefitURIAddress)
+        const account = await this.program.account.benefitUriAccount.fetch(benefitURIAddress)
         console.log("result: ", account.benefitUri);
     }
 
@@ -91,8 +93,8 @@ export class NFTOwner {
         ))[0];
     }
 
-    private async createBenefitAddress(mintKeypair: anchor.web3.Keypair): Promise<anchor.web3.PublicKey> {
-        console.log("create benefit address...");
+    private async createBenefitURIAddress(mintKeypair: anchor.web3.Keypair): Promise<anchor.web3.PublicKey> {
+        console.log("create benefitURI address...");
         return (await anchor.web3.PublicKey.findProgramAddress(
             [
                 Buffer.from("benefitURI"),
@@ -102,9 +104,21 @@ export class NFTOwner {
         ))[0];
     }
 
-    private async callMint(masterEditionAddress: anchor.web3.PublicKey, metadataAddress: anchor.web3.PublicKey, mintKeypair: anchor.web3.Keypair, tokenAddress: anchor.web3.PublicKey, benefitAddress: anchor.web3.PublicKey, nftData: NFTData) {
+    private async createBenefitsAddress(mintKeypairPublickey: anchor.web3.PublicKey, tokenAccountPublickey: anchor.web3.PublicKey): Promise<anchor.web3.PublicKey> {
+        console.log("create benefits address...");
+        return (await anchor.web3.PublicKey.findProgramAddress(
+            [
+                Buffer.from("benefit"),
+                mintKeypairPublickey.toBuffer(),
+                tokenAccountPublickey.toBuffer()
+            ],
+            this.program.programId
+        ))[0];
+    }
+
+    private async callMint(masterEditionAddress: anchor.web3.PublicKey, metadataAddress: anchor.web3.PublicKey, mintKeypair: anchor.web3.Keypair, tokenAddress: anchor.web3.PublicKey, benefitURIAddress: anchor.web3.PublicKey, benfitsAddress: anchor.web3.PublicKey, nftData: NFTData) {
         await this.program.methods.mint(
-            nftData.title, nftData.symbol, nftData.uri, nftData.benefit_uri
+            nftData.title, nftData.symbol, nftData.uri, nftData.benefit_uri, nftData.benefits
         )
             .accounts({
                 metadata: metadataAddress,
@@ -112,7 +126,8 @@ export class NFTOwner {
                 mint: mintKeypair.publicKey,
                 tokenAccount: tokenAddress,
                 mintAuthority: this.wallet.publicKey,
-                benefitInfo: benefitAddress,
+                benefitInfo: benefitURIAddress,
+                benefitsList: benfitsAddress,
                 tokenMetadataProgram: this.tokenMetaDataProgramID,  
             })
             .signers([mintKeypair])
