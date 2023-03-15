@@ -1,5 +1,7 @@
 # Yours_Grizzlython_Solana
 
+![깃헙요](https://user-images.githubusercontent.com/110335540/225206712-8a78717d-996c-4f7f-8c43-fa80230c87ce.png)
+
 ### Product Info
 Yours is an interchain gaming wallet that enables NFT issuance, authentication, synthesis, enhancement, and trading, all through a single wallet UI that is optimized for mobile devices.
 
