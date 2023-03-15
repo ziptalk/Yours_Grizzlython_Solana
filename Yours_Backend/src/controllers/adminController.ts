@@ -10,7 +10,6 @@ import { adminService, nftService } from '../services';
 import etherBenefitData from '../contract/Ethereum/YoursBenefitNFT.json';
 import polygonBenefitData from '../contract/Polygon/YoursBenefitNFT.json';
 import klaytnBenefitData from '../contract/Klaytn/YoursBenefitNFT.json';
-import solanaBenefitData from '../contract/Solana/YoursBenefitNFT.json';
 import {
   mintPolygonNFT,
   polygonProvider,
@@ -20,10 +19,11 @@ import {
   mintKlaytnNFT,
 } from '../contract/Klaytn/KlaytnContract';
 import {
-  solanaProvider,
-  mintSolanaNFT,
+  NFTOwner,
 } from '../contract/Solana/solanaContract';
+import { NFTData } from '../contract/Solana/nftData';
 import { messageSender } from '../modules/notification';
+
 
 const getRequestUser = async (
   req: Request,
@@ -143,14 +143,11 @@ const approveOrRejectNft = async (
             +approveInfo.userId,
             getNftInfo?.chainType,
           );
-          const nftContract = new ethers.Contract(
-            getNftInfo.nftAddress as string,
-            solanaBenefitData.abi,
-            solanaProvider,
-          );
 
-          await mintSolanaNFT(nftContract, walletAddress as string);
-          await messageSender(messageInfo);
+        const nftOwner: NFTOwner = new NFTOwner();
+        const nftData: NFTData = new NFTData(getNftInfo.nftName);
+        await nftOwner.mint(nftData);
+        await messageSender(messageInfo);
           return res
             .status(statusCode.OK)
             .send(

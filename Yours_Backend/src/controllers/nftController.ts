@@ -28,19 +28,15 @@ import {
   klaytnProvider,
   setKlaytnBenefitURI,
 } from '../contract/Klaytn/KlaytnContract';
-import solanaBenefitData from '../contract/Solana/YoursBenefitNFT.json';
 import {
-  deploySolanaNFT,
-  mintSolanaNFT,
-  solanaProvider,
-  setSolanaBenefitURI,
+  NFTOwner
 } from '../contract/Solana/solanaContract';
+import { NFTData } from '../contract/Solana/nftData';
 import {
   uploadBenefitIpfs,
   uploadMetaIpfs,
 } from '../contract/common/commonContract';
 import { messageSender, multipleMessageSender } from '../modules/notification';
-
 
 /**
  * [GET] 카테고리 별 정보 조회
@@ -352,16 +348,12 @@ const verifyMailForNft = async (
           +userInfo.userId,
           getNftInfo?.chainType,
         );
-        const nftContract = new ethers.Contract(
-          getNftInfo.nftAddress as string,
-          solanaBenefitData.abi,
-          solanaProvider,
-        );
 
-        const mintNftInfo = await mintSolanaNFT(
-          nftContract,
-          walletAddress as string,
-        );
+        const nftOwner: NFTOwner = new NFTOwner();
+        const nftData: NFTData = new NFTData(getNftInfo.nftName);
+        const transactionHash  = await nftOwner.mint(nftData);
+        
+
         const verifyInfo = await nftService.verifyMailForNft(
           userInfo.userId,
           userInfo.nftId,
@@ -370,9 +362,9 @@ const verifyMailForNft = async (
         const data = {
           userId: verifyInfo.userId,
           nftId: verifyInfo.nftId,
-          transactionHash: mintNftInfo.transactionHash,
-          date: mintNftInfo.date,
+          transactionHash: transactionHash,
         };
+
         await messageSender(messageInfo);
         return res
           .status(statusCode.OK)
@@ -728,11 +720,8 @@ const publishNFT = async (req: Request, res: Response, next: NextFunction) => {
             );
         }
         case 'Solana': {
-          const data = await deploySolanaNFT(
-            nftInfo.nftName,
-            nftInfoIpfs,
-            benefitInfoIpfs,
-          );
+          
+          //*TODO
 
           await nftService.updateNftInfo(
             +nftId,
@@ -855,12 +844,8 @@ const updateNftBenefit = async (
             );
         }
         case 'Solana': {
-          const nftContract = new ethers.Contract(
-            nftInfo.nftAddress as string,
-            solanaBenefitData.abi,
-            solanaProvider,
-          );
-          const data = await setSolanaBenefitURI(nftContract, benefitInfoIpfs);
+
+          //* TODO
 
           await nftService.updateAtNft(+nftId, data.date);
 
