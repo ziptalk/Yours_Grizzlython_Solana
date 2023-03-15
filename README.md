@@ -29,4 +29,4 @@ Yours is an interchain gaming wallet that enables NFT issuance, authentication, 
 
 ### Contact
 - E: yoursnft@gmail.com <br/>
-- H: blockwavelabs.io
+- H: https://blockwavelabs.io/
